@@ -17,9 +17,23 @@
 
       <v-spacer></v-spacer>
       <v-btn
+              href="https://www.linkedin.com/in/olivier-fradette-roy-37a58aa8/"
+              target="_blank"
+              depressed
+              dark
+              class="mr-2"
+              color="#4875B4"
+      >
+        <span class="mr-2">My LinkedIn</span>
+        <v-icon small style="margin-top: -3px">
+          fab fa-linkedin-in
+        </v-icon>
+      </v-btn>
+      <v-btn
         href="https://explorance.com/fr/"
         target="_blank"
         text
+        color="blue darken-1"
       >
         <span class="mr-2">For more information</span>
         <v-icon>mdi-open-in-new</v-icon>
