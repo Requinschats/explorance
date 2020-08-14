@@ -5,7 +5,8 @@
                 <div class="d-flex mr-5">
                     <v-card-title class="grey--text text--darken-2">Read/Show ({{users.length}})</v-card-title>
                     <v-spacer/>
-                    <v-btn small text @click="actionDialog = true" class="mt-5 mr-5">
+                    <v-btn small text @click="actionDialog = true; isUpdating = false; intitializeCurrentUser"
+                           class="mt-5 mr-5">
                         Add a user
                     </v-btn>
                     <v-text-field style="max-width: 200px" prefix="Search"/>
@@ -49,7 +50,8 @@
                         <v-btn small @click="this.intitializeCurrentUser">clear</v-btn>
                     </v-card-title>
                     <div class="d-flex flex-column justify-center">
-                        <v-text-field prefix="Name" v-model="currentUser.name" :rules="[rules.required, rules.counter]"/>
+                        <v-text-field prefix="Name" v-model="currentUser.name"
+                                      :rules="[rules.required, rules.counter]"/>
                         <v-text-field prefix="Family" v-model="currentUser.family"/>
                         <v-btn v-if="!isUpdating" @click="add()" type="button" value="Add">
                             Add
