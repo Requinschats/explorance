@@ -53,7 +53,7 @@
                                 </tbody>
                             </template>
                             <div class="d-flex justify-center">
-                                <span v-if="filteredUsers.length === 0">No Users</span>
+                                <span v-if="filteredUsers.length === 0">No User</span>
                             </div>
                         </v-simple-table>
                     </div>
@@ -76,7 +76,8 @@
                     </v-card-title>
                     <div class="d-flex flex-column justify-center">
                         <div class="d-flex justify-center">
-                            <v-text-field label="Name" v-model="currentUser.name" style="max-width: 300px"
+                            <v-text-field validate-on-blur label="Name" v-model="currentUser.name"
+                                          style="max-width: 300px"
                                           :rules="[rules.required, rules.counter]" prepend-icon="perm_identity"/>
                         </div>
                         <div class="d-flex justify-center">
@@ -118,18 +119,18 @@
         <v-dialog v-model="deleteUserConfirmation" width="400">
             <v-card min-width="400" height="175">
                 <div class="d-flex flex-column fill-height">
-                <v-card-title>Delete User {{currentUser.name}} ?</v-card-title>
+                    <v-card-title>Delete User {{currentUser.name}} ?</v-card-title>
                     <v-spacer/>
-                <div class="d-flex pa-5">
-                    <v-spacer/>
-                    <v-btn @click="handleDeleteUserDecision(false)" color="blue darken-1" text>
-                        Cancel
-                    </v-btn>
-                    <v-btn @click="handleDeleteUserDecision(true)" depressed color="blue darken-1" dark
-                           class="mr-1">
-                        Continue
-                    </v-btn>
-                </div>
+                    <div class="d-flex pa-5">
+                        <v-spacer/>
+                        <v-btn @click="handleDeleteUserDecision(false)" color="blue darken-1" text>
+                            Cancel
+                        </v-btn>
+                        <v-btn @click="handleDeleteUserDecision(true)" depressed color="blue darken-1" dark
+                               class="mr-1">
+                            Continue
+                        </v-btn>
+                    </div>
                 </div>
             </v-card>
         </v-dialog>
@@ -137,28 +138,26 @@
 </template>
 
 <script>
-    import moment from 'moment'
     import Requirements from "./Requirements";
+    import {User} from "../User";
+    import {cloneDeep} from 'lodash'
+
+    const filterUsersBySearch = (users, search) => {
+        return users.filter(user => user.name && user.name.toLowerCase().includes(search.toLowerCase()) ||
+                                    user.family && user.family.toLowerCase().includes(search.toLowerCase()))
+    };
 
     export default {
         name: "Main",
         components: {Requirements},
         computed: {
             filteredUsers() {
-                return !this.search || this.search === ''
-                    ? this.users
-                    : this.users.filter(user => user.name && user.name.toLowerCase().includes(this.search.toLowerCase()) ||
-                                                user.family && user.family.toLowerCase().includes(this.search.toLowerCase()))
+                return !this.search || this.search === '' ? this.users : filterUsersBySearch(this.users, this.search)
             }
         },
         data() {
             return {
-                users: [
-                    {id: 0, name: "Ali", family: "Delshad", birthday: new moment().format('YY-MM-DD')},
-                    {id: 1, name: "Hamid", family: "Sadeghi", birthday: new moment().format('YY-MM-DD')},
-                    {id: 2, name: "Amir", family: "Olfat", birthday: new moment().format('YY-MM-DD')},
-                    {id: 3, name: "Keyvan", family: "Nasr", birthday: new moment().format('YY-MM-DD')}
-                ],
+                users: User.getTemplateUsers(),
                 isUpdating: false,
                 currentUser: {},
                 actionDialog: false,
@@ -172,30 +171,26 @@
         },
         methods: {
             addUser() {
-                this.users.push({
-                    id: Math.random(), //Assuming determinism for the scope if this assignment
-                    name: this.currentUser.name,
-                    family: this.currentUser.family
-                });
-                this.intitializeCurrentUser()
-                this.actionDialog = false
+                this.users.push(new User(this.currentUser));
+                this.closeDialog()
             },
             setEditUser(userId) {
-                this.isUpdating = true
-                this.currentUser = JSON.parse(JSON.stringify(this.users.find(user => user.id === userId)))
+                this.isUpdating = true;
+                this.currentUser = cloneDeep(this.users.find(user => user.id === userId))
+            },
+            closeDialog() {
+                this.intitializeCurrentUser();
+                this.isUpdating = false;
+                this.actionDialog = false
             },
             editUser() {
                 this.users = this.users.map(user => user.id === this.currentUser.id ? {...user, ...this.currentUser} : user);
-                this.isUpdating = false;
-                this.intitializeCurrentUser();
-                this.actionDialog = false
+                this.closeDialog()
             },
             cancelEditing() {
-                this.intitializeCurrentUser()
-                this.actionDialog = false
-                this.isUpdating = false
+                this.closeDialog()
             },
-            handleDeleteUserDecision(decision){
+            handleDeleteUserDecision(decision) {
                 if (decision) {
                     this.users = this.users.filter(user => user.id !== this.currentUser.id)
                 }
@@ -203,13 +198,15 @@
                 this.intitializeCurrentUser()
             },
             removeUser(user) {
-                this.currentUser = JSON.parse(JSON.stringify(user));
+                this.currentUser = cloneDeep(user);
                 this.deleteUserConfirmation = true
 
             },
             intitializeCurrentUser() {
                 for (const key of Object.keys(this.currentUser)) {
-                    this.currentUser[key] = null
+                    if(key !== 'id'){
+                        this.currentUser[key] = null
+                    }
                 }
             }
         }
